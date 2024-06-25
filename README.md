@@ -6,4 +6,3 @@ For the estimated crowd density maps, click here: https://pan.baidu.com/s/1t30Tn
 
 For estimated number of people for testing dataset of RGBTCC, click here: https://pan.baidu.com/s/1gcZABTAklnrRd1qd6xK6MQ?pwd=6898. In this text file, the first column is the image name and the second column is the estimated number of pedestrians.
 
-The code is coming soon!!!
