@@ -6,7 +6,6 @@ from utils.functions import CMD
 from utils.functions import DiffLoss
 from utils.functions import PatchEmbed
 from torch.optim import lr_scheduler
-import random
 import pytorch_ssim
 from torchvision.utils import make_grid
 import   scipy.io  as  sio
@@ -46,11 +45,6 @@ class RegTrainer(Trainer):
     def setup(self):
         """initial the datasets, model, loss and optimizer"""
         args = self.args
-        torch.manual_seed(args.seed)
-        torch.cuda.manual_seed(args.seed)
-        # torch.cuda.manual_seed_all(args.seed) # 让显卡产生的随机数一致
-        np.random.seed(args.seed)  # numpy产生的随机数一致
-        # random.seed(args.seed)
         # args = self.args
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
@@ -99,55 +93,26 @@ class RegTrainer(Trainer):
                                    self.device)
         self.criterion = Bay_Loss(args.use_background, self.device)
         self.mse = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        # self.diffloss = pytorch_ssim.SSIM(window_size = 11)
         self.diffloss = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        # self.diffloss = torch.nn.CosineSimilarity(dim=2, eps=1e-6)
-        # self.diffloss=torch.nn.CosineEmbeddingLoss(margin=0.5, size_average=None, reduce=None, reduction='mean')
         self.cmd = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        # self.cmd=pytorch_ssim.SSIM(window_size = 11)
-        # if torch.cuda.is_available() and args.use_cuda:
         self.mse = self.mse.to(self.device)
         self.diffloss = self.diffloss.to(self.device)
         self.cmd = self.cmd.to(self.device)
 
         self.save_list = Save_Handle(max_num=args.max_model_num)
-        # self.lr_scheduler_name = args.lr_scheduler
         self.best_game0 = np.inf
         self.best_game3 = np.inf
         self.best_count = 0
         self.best_count_1 = 0
-        # if self.lr_scheduler_name == "StepLR":
-        #     self.scheduler = lr_scheduler.StepLR(self.optimizer,
-        #                                          last_epoch=-1,
-        #                                          step_size=args.decay_interval,
-        #                                          gamma=args.decay_ratio)
-        # elif self.lr_scheduler_name == "CosineAnnealingLR":
-        #     self.scheduler = lr_scheduler.CosineAnnealingLR(self.optimizer,
-        #                                                     T_max=self.max_epochs * self.num_steps_per_epoch,
-        #                                                     last_epoch=-1)
-        # else:
-        #     raise Exception("Wrong lr_scheduler_name")
+
 
     def train(self):
         """training process"""
         args = self.args
         for epoch in range(self.start_epoch, args.max_epoch):
-            # logging.info('save dir: '+args.save_dir)
             logging.info('-'*5 + 'Epoch {}/{}'.format(epoch, args.max_epoch - 1) + '-'*5)
             self.epoch = epoch
-            # self.current_epoch=self.epoch
-            # self.image_path=r'F:\CrowdCounting(rgbt)\DEFNet-main\feature map'
             self.train_eopch()
-            # a, b, c,d = self.train_eopch()
-            # self.writer.add_scalar('loss_tatal', a, global_step=self.epoch)
-            # self.writer.add_scalar('loss_similarity', b, global_step=self.epoch)
-            # self.writer.add_scalar('loss_difference', c, global_step=self.epoch)
-            # self.writer.add_scalar('loss_reconstruction', d, global_step=self.epoch)
-            # sio.savemat(os.path.join(self.image_path,'1s.mat'), mdict = {'L': d,})
-            # sio.savemat(os.path.join(self.image_path,'1ts.mat'), mdict={'L': e, })
-            # sio.savemat(os.path.join(self.image_path,'1.mat'), mdict={'L': f, })
-            # sio.savemat(os.path.join(self.image_path,'1t.mat'), mdict={'L': g, })
-            # epoch=20
             if epoch % args.val_epoch == 0 and epoch >= args.val_start:
                 game0_is_best, game3_is_best = self.val_epoch()
 
@@ -199,23 +164,10 @@ class RegTrainer(Trainer):
                 loss_CMD+=self.cmd(in_data_2_shared, in_data_2t_shared)
                 loss_CMD+=self.cmd(in_data_1_shared, in_data_1t_shared)
                 # Between private and shared####diff loss
-                # Tar = torch.tensor([-1]).to(self.device)
-                # batch_size=args.batch_size
-                # loss_DIFF = self.diffloss(in_data_16_shared.reshape(batch_size, -1), in_data_16_private.reshape(batch_size, -1),Tar)#+self.diffloss(in_data_16_t_shared, in_data_16_t_private)
-                # loss_DIFF = self.diffloss(in_data_16_shared.reshape(batch_size, -1), in_data_16_private.reshape(batch_size, -1),Tar)#+self.diffloss(in_data_16_t_shared, in_data_16_t_private)
-                # loss_DIFF = self.diffloss(in_data_16t_private, in_data_16_private)
                 loss_DIFF = torch.log10(1 / torch.sqrt(self.diffloss(in_data_16t_private, in_data_16_private)))
-                # print(loss_DIFF)
-                # loss_DIFF += self.diffloss(in_data_16_t_shared.reshape(batch_size, -1), in_data_16_t_private.reshape(batch_size, -1),Tar)
-                # loss_DIFF += self.diffloss(in_data_8t_private, in_data_8_private)
                 loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_8t_private, in_data_8_private)))
-                # among private
-                # loss_DIFF += self.diffloss(in_data_16_private.reshape(batch_size, -1), in_data_16_t_private.reshape(batch_size, -1),Tar)
-                # loss_DIFF += self.diffloss(in_data_4t_private, in_data_4_private)
                 loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_4t_private, in_data_4_private)))
-                # loss_DIFF += self.diffloss(in_data_2t_private, in_data_2_private)
                 loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_2t_private, in_data_2_private)))
-                # loss_DIFF += self.diffloss(in_data_1t_private, in_data_1_private)
                 loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_1t_private, in_data_1_private)))
                 ####
                 loss_MSE = self.mse(in_data_1t_private + in_data_1t_shared, in_data_1_d)
@@ -253,7 +205,6 @@ class RegTrainer(Trainer):
         logging.info('Epoch {} Train, Loss: {:.7f},loss_CMD: {:.7f},loss_DIFF: {:.7f},loss_MSE: {:.2f}, GAME0: {:.2f} MSE: {:.2f}, Cost {:.1f} sec'
                      .format(self.epoch, epoch_loss.get_avg(),epoch_loss_CMD.get_avg(),epoch_loss_DIFF.get_avg(), epoch_loss_MSE.get_avg(), epoch_game.get_avg(), np.sqrt(epoch_mse.get_avg()),
                              time.time()-epoch_start))
-        # tensorboard_ind += 1
         model_state_dic = self.model.state_dict()
         save_path = os.path.join(self.save_dir, '{}_ckpt.tar'.format(self.epoch))
         torch.save({
@@ -264,7 +215,6 @@ class RegTrainer(Trainer):
         self.save_list.append(save_path)  # control the number of saved models
         # if self.lr_scheduler_name == "StepLR":
         #     self.scheduler.step()
-        return epoch_loss.get_avg(),epoch_loss_CMD.get_avg(),epoch_loss_DIFF.get_avg(),epoch_loss_MSE.get_avg()#feature_map_s1,feature_map_s1t,feature_map_1,feature_map_1d
     def val_epoch(self):
         args = self.args
         self.model.eval()  # Set model to evaluate mode
