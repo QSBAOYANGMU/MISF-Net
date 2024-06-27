@@ -8,11 +8,8 @@ from backbone.VGG import (
     Backbone_VGG_in3,
 )
 from module.MyModules import (
-    EDFM,
     IDEM,
     FDM,
-    Enhanced_S,
-    Enhanced_P,
 )
 import warnings
 warnings.filterwarnings("ignore")
@@ -80,13 +77,6 @@ class MISFNet(nn.Module):
         self.upconv4 = BasicConv2d(64, 64, kernel_size=3, stride=1, padding=1)
         self.upconv2 = BasicConv2d(64, 32, kernel_size=3, stride=1, padding=1)
         self.upconv1 = BasicConv2d(32, 32, kernel_size=3, stride=1, padding=1)
-
-
-        self.selfdc_16 = EDFM(64, 64)
-        self.selfdc_8 = EDFM(64, 64)
-        self.selfdc_4 = EDFM(64, 64)
-        self.selfdc_2 = EDFM(32,32)
-        self.selfdc_1 = EDFM(32,32)
 
 
         ##########################################
@@ -235,7 +225,7 @@ class MISFNet(nn.Module):
         out_2 = out_2_p+out_2_s
         out_4 = out_4_p+out_4_s
         out_8 = out_8_p+out_8_s
-        out_16 = out_16_p+out_16_s+(in_data_16_d)
+        out_16 = out_16_p+out_16_s+in_data_16_d
 
         out_data = self.fdm(out_1,out_2,out_4,out_8,out_16)
 
