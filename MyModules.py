@@ -11,11 +11,6 @@ warnings.filterwarnings("ignore")
 class IDEM(nn.Module):
     def __init__(self, in_C, out_C):
         super(IDEM, self).__init__()
-        # down_factor = in_C // out_C
-        # self.fuse_down_mul = BasicConv2d(in_C, in_C, 3, 1, 1)
-        # self.res_main = DenseLayer(in_C, in_C, down_factor=down_factor)
-        # self.fuse_main = BasicConv2d(in_C, out_C, kernel_size=3, stride=1, padding=1)
-        # self.fuse_main1 = BasicConv2d(in_C,out_C,kernel_size=1)
 
         self.ar3 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=1, padding=1)
         self.ar5 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=2, padding=2)
@@ -43,8 +38,6 @@ class IDEM(nn.Module):
         trgb_35711 = self.conv(rgbt_357*tgbt_357+tgbt_357 + depth_11) + (rgbt_357*tgbt_357+tgbt_357 + depth_11)
         # feat=torch.cat([rgbt_35711,trgb_35711],dim=1)
         feat = rgbt_35711 + trgb_35711+rgb_3+depth_3#+rgb+depth##rgbt_35711 + trgb_35711+rgb_3+depth_3
-        # feat=rgb+depth
-        # feat = depth
         return feat
 
 
