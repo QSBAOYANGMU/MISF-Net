@@ -17,7 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from datasets.crowd import Crowd
 from losses.bay_loss import Bay_Loss
 from losses.post_prob import Post_Prob
-from models.DEFNet import fusion_model
+from models.MISFNet import fusion_model
 import warnings
 warnings.filterwarnings("ignore")
 def train_collate(batch):
