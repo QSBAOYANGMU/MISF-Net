@@ -8,7 +8,7 @@ from backbone.VGG import (
     Backbone_VGG_in3,
 )
 from module.MyModules import (
-    IDEM,
+    MIFM,
     FDM,
 )
 import warnings
@@ -66,11 +66,11 @@ class MISFNet(nn.Module):
         self.trans1 = nn.Conv2d(64, 32, 1)
 
 
-        self.t_trans16 = IDEM(512, 64)
-        self.t_trans8 = IDEM(512, 64)
-        self.t_trans4 = IDEM(256, 64)
-        self.t_trans2 = IDEM(128,32)
-        self.t_trans1 = IDEM(64,64)
+        self.t_trans16 = MIFM(512, 64)
+        self.t_trans8 = MIFM(512, 64)
+        self.t_trans4 = MIFM(256, 64)
+        self.t_trans2 = MIFM(128,32)
+        self.t_trans1 = MIFM(64,64)
 
         self.upconv16 = BasicConv2d(64, 64, kernel_size=3, stride=1, padding=1)
         self.upconv8 = BasicConv2d(64, 64, kernel_size=3, stride=1, padding=1)
