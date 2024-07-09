@@ -8,9 +8,9 @@ warnings.filterwarnings("ignore")
 
 
 
-class IDEM(nn.Module):
+class MIFM(nn.Module):
     def __init__(self, in_C, out_C):
-        super(IDEM, self).__init__()
+        super(MIFM, self).__init__()
 
         self.ar3 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=1, padding=1)
         self.ar5 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=2, padding=2)
