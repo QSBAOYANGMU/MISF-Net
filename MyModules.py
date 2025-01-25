@@ -7,40 +7,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-
-class MIFM(nn.Module):
-    def __init__(self, in_C, out_C):
-        super(MIFM, self).__init__()
-
-        self.ar3 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=1, padding=1)
-        self.ar5 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=2, padding=2)
-        self.ar7 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=4, padding=4)
-        self.ar11 = BasicConv2d(in_C, in_C, kernel_size=3, dilation=8, padding=8)
-        self.conv = nn.Conv2d(in_C, in_C, kernel_size=3, padding=1)
-        self.conv1 = nn.Conv2d(in_C, in_C, kernel_size=1)
-
-
-    def forward(self, rgb, depth):
-        assert rgb.size() == depth.size()
-        rgb_3 = self.ar3(rgb) + self.conv1(rgb)
-        depth_3 = self.ar3(depth) + self.conv1(depth)
-        rgb_5 = self.ar5(rgb) + self.conv1(rgb)
-        depth_5 = self.ar5(depth) + self.conv1(depth)
-        rgbt_35 = self.conv(rgb_3*depth_3+rgb_3 + rgb_5) + (rgb_3*depth_3+rgb_3 + rgb_5)
-        trgb_35 = self.conv(rgb_3*depth_3+depth_3 + depth_5) + (rgb_3*depth_3+depth_3 + depth_5)
-        rgb_7 = self.ar7(rgb) + self.conv1(rgb)
-        depth_7 = self.ar7(depth) + self.conv1(depth)
-        rgbt_357 = self.conv(rgbt_35*trgb_35+rgbt_35 + rgb_7 ) + (rgbt_35*trgb_35+rgbt_35 + rgb_7 )
-        tgbt_357 = self.conv(rgbt_35*trgb_35+trgb_35+depth_7) + (rgbt_35*trgb_35+trgb_35+depth_7)
-        rgb_11 = self.ar5(rgb) + self.conv1(rgb)
-        depth_11 = self.ar5(depth) + self.conv1(depth)
-        rgbt_35711 = self.conv(rgbt_357*tgbt_357+rgbt_357+ rgb_11) + (rgbt_357*tgbt_357+rgbt_357+ rgb_11)
-        trgb_35711 = self.conv(rgbt_357*tgbt_357+tgbt_357 + depth_11) + (rgbt_357*tgbt_357+tgbt_357 + depth_11)
-        # feat=torch.cat([rgbt_35711,trgb_35711],dim=1)
-        feat = rgbt_35711 + trgb_35711+rgb_3+depth_3#+rgb+depth##rgbt_35711 + trgb_35711+rgb_3+depth_3
-        return feat
-
-
 class BasicUpsample(nn.Module):
     def __init__(self,scale_factor):
         super(BasicUpsample, self).__init__()
