@@ -86,10 +86,6 @@ class RegTrainer(Trainer):
                                    args.use_background,
                                    self.device)
         self.criterion = Bay_Loss(args.use_background, self.device)
-        self.mse = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        self.diffloss = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        self.cmd = torch.nn.MSELoss(size_average=None, reduce=None, reduction='mean')
-        self.mse = self.mse.to(self.device)
         self.diffloss = self.diffloss.to(self.device)
         self.cmd = self.cmd.to(self.device)
 
@@ -117,9 +113,6 @@ class RegTrainer(Trainer):
         args = self.args
         # self.current_epoch = epoch
         epoch_loss = AverageMeter()
-        epoch_loss_CMD = AverageMeter()
-        epoch_loss_DIFF = AverageMeter()
-        epoch_loss_MSE = AverageMeter()
 
         epoch_game = AverageMeter()
         epoch_mse = AverageMeter()
@@ -150,31 +143,6 @@ class RegTrainer(Trainer):
                in_data_1t_private,in_data_1_private = self.model(inputs)
                 prob_list = self.post_prob(points, st_sizes)
                 loss_bays = self.criterion(prob_list, outputs)
-                #####similarity#######
-                # loss_CMD = self.cmd(in_data_16_shared, in_data_16_t_shared, 5)
-                loss_CMD = self.cmd(in_data_16_shared, in_data_16t_shared)
-                loss_CMD+=self.cmd(in_data_8_shared, in_data_8t_shared)
-                loss_CMD+=self.cmd(in_data_4_shared, in_data_4t_shared)
-                loss_CMD+=self.cmd(in_data_2_shared, in_data_2t_shared)
-                loss_CMD+=self.cmd(in_data_1_shared, in_data_1t_shared)
-                # Between private and shared####diff loss
-                loss_DIFF = torch.log10(1 / torch.sqrt(self.diffloss(in_data_16t_private, in_data_16_private)))
-                loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_8t_private, in_data_8_private)))
-                loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_4t_private, in_data_4_private)))
-                loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_2t_private, in_data_2_private)))
-                loss_DIFF += torch.log10(1 / torch.sqrt(self.diffloss(in_data_1t_private, in_data_1_private)))
-                ####
-                loss_MSE = self.mse(in_data_1t_private + in_data_1t_shared, in_data_1_d)
-                loss_MSE += self.mse(in_data_2t_private + in_data_2t_shared, in_data_2_d)
-                loss_MSE += self.mse(in_data_4t_private + in_data_4t_shared, in_data_4_d)
-                loss_MSE += self.mse(in_data_8t_private + in_data_8t_shared, in_data_8_d)
-                loss_MSE += self.mse(in_data_16t_private + in_data_16t_shared, in_data_16_d)
-                loss_MSE += self.mse(in_data_16_private + in_data_16_shared, in_data_16)
-                loss_MSE += self.mse(in_data_8_private + in_data_8_shared, in_data_8)
-                loss_MSE += self.mse(in_data_4_private + in_data_4_shared, in_data_4)
-                loss_MSE += self.mse(in_data_2_private + in_data_2_shared, in_data_2)
-                loss_MSE += self.mse(in_data_1_private + in_data_1_shared, in_data_1)
-
                 #####
                 loss=loss_bays+args.a*loss_CMD+args.b*loss_DIFF+args.c*loss_MSE
                 self.optimizer.zero_grad()
